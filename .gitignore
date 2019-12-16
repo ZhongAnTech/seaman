@@ -1,0 +1,9 @@
+.vscode
+*.log
+*.swp
+.idea
+.DS_Store
+/seaman
+*.exe
+/configRepo/
+/vendor/

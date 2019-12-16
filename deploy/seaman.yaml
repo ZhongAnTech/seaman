@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: seaman
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: seaman-kubeconfig
+  namespace: seaman
+data:
+  config: |
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: seaman-config
+  namespace: seaman
+data:
+  config.yaml: |
+    sync:
+      second: 1
+    git:
+      dir: 'configRepo/'
+      url: https://xxxx/xxxx/seaman-config-repo.git
+      branch: xxx
+      token: xxx
+    kubecloud:
+      url: http://svc-kubecloud:8080
+      companyId: xxx
+      cluster: xxx
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: seaman
+  name: seaman
+  namespace: seaman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seaman
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: seaman
+      name: seaman
+      namespace: seaman
+    spec:
+      containers:
+        - image: seaman:latest
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            successThreshold: 1
+            tcpSocket:
+              port: 8080
+            timeoutSeconds: 2
+          name: seaman
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            privileged: false
+          volumeMounts:
+            - name: seaman-config
+              mountPath: /seaman/configs
+            - name: seaman-kubeconfig
+              mountPath: /seaman/kubeconfig
+      volumes:
+        - configMap:
+            name: seaman-config
+          name: seaman-config
+        - configMap:
+            name: seaman-kubeconfig
+          name: seaman-kubeconfig
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: seaman
+  name: svc-seaman
+  namespace: seaman
+spec:
+  ports:
+    - name: http-8080-8080
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: seaman
+  type: ClusterIP

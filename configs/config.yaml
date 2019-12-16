@@ -1,0 +1,13 @@
+sync:
+  second: 1
+
+git:
+  dir: 'configRepo/'
+  url: https://xxxx/xxxx/seaman-config-repo.git
+  branch: xxx
+  token: xxx
+
+kubecloud:
+  url: http://svc-kubecloud:8080
+  companyId: xxx
+  cluster: xxx
